@@ -4,6 +4,8 @@
 #include "sampler.hpp"
 #include "main.hpp"
 
+const int NUM_REACTION_CONSTANTS = 10;
+
 using namespace std;
 
 int main(int argc, char *argv[]){
@@ -141,11 +143,63 @@ int main(int argc, char *argv[]){
 	vector<double> z(reaction_constants.size());
 	vector<int> partner(reaction_constants.size());
 	vector<int> accept(reaction_constants.size());
+	vector<double> log_likelihoods(reaction_constants.size(), -INFINITY);
 	std::vector<double> log_likelihoods_propose(reaction_constants.size());
 
 	random_device rd;
 	uniform_real_distribution<double> u01(0, 1);
 	mt19937_64 engine(rd());
+
+	if(world_id == ROOT_PROCESS) {
+
+		for(int i = 0; i < reaction_constants.size(); i += 1) {
+
+			SystemVariables sys = sys_base;
+			PropensityContainer prop_cont(sys.N_hexamers);
+			std::vector<Hexamer> hexamers(sys.N_hexamers);
+			double t_sample = sys.tequ;
+			std::vector<double> data;
+
+			for(int j = 0; j < sys.N_hexamers; j += 1) {
+
+				hexamers[j].set_prop_container(&prop_cont);
+				hexamers[j].set_reaction_consts(&reaction_constants[i]);
+				hexamers[j].set_sysvars(&sys);
+				hexamers[j].initialize_state(j,1,0,0,0,6,6,0,0,6);
+				hexamers[j].set_propensities();
+			}
+
+			int step_count = 0;
+
+			while(propagate(&sys, &hexamers[0], &prop_cont, &reaction_constants[i], u01, engine) && step_count < max_sim_iter) {
+
+				step_count += 1;
+
+				if(sys.tsim > t_sample) {
+
+					double CIKaiB_bound;
+
+					for(auto& hexamer: hexamers) {
+
+						CIKaiB_bound += hexamer.get_CIKaiB_bound();
+					}
+
+					CIKaiB_bound /= sys.N_hexamers;
+					data.push_back(CIKaiB_bound);
+					t_sample += sys.t_sample_incr;
+				}
+			}
+
+			if(step_count < max_sim_iter) {
+
+				Eigen::Map<Eigen::VectorXd> x(&data[0], data.size());
+				double mean = x.sum() / x.size();
+				x.array() -= mean;
+				Eigen::VectorXd autocorrelation = cross_correlation(x, x);
+				log_likelihoods[i] = check_oscillation(autocorrelation, 6, sys.t_sample_incr, 23);
+			}
+		}
+	}
 
 	for(int step = 0; step < maxiter; step += 1) { 
 		
@@ -236,7 +290,7 @@ int main(int argc, char *argv[]){
 
 			while(propagate(&sys, &hexamers[0], &prop_cont, &reaction_constants_propose[i], u01, engine) && step_count < max_sim_iter) {
 
-				step_count += 1;
+				int step_count= 0;
 
 				if(sys.tsim > t_sample) {
 
@@ -259,7 +313,7 @@ int main(int argc, char *argv[]){
 				double mean = x.sum() / x.size();
 				x.array() -= mean;
 				Eigen::VectorXd autocorrelation = cross_correlation(x, x);
-				log_likelihoods_propose[i] = check_oscillation(autocorrelation, 6, 0.3);
+				log_likelihoods_propose[i] = check_oscillation(autocorrelation, 6, sys.t_sample_incr, 23);
 			}
 		}	
 
@@ -300,9 +354,12 @@ int main(int argc, char *argv[]){
 			//Process 0 computes whether proposed move for each walker is accepted or not
 			for(int i = 0; i < reaction_constants.size(); i += 1) {
 				
-				if(log_likelihoods_propose[i] > 0) {
+				double log_likelihood_ratio = log_likelihoods_propose[i] - log_likelihoods[i];
+
+				if(((NUM_REACTION_CONSTANTS - 1) * log(z[i]) + log_likelihood_ratio) > log(u01(engine))) {
 
 					accept[i] = 1;
+					log_likelihoods[i] = log_likelihoods_propose[i];
 				}
 				else {
 
@@ -321,7 +378,7 @@ int main(int argc, char *argv[]){
 				
 				printf("%d\t", i);
 				MPI_Send(&accept[0], accept.size(), MPI_INT, i, TAG_STRETCH_MOVE_ACCEPTANCE, MPI_COMM_WORLD);
-				//MPI_Send(&log_likelihoods[0], log_likelihoods.size(), MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
+				MPI_Send(&log_likelihoods[0], log_likelihoods.size(), MPI_DOUBLE, i, 0, MPI_COMM_WORLD);
 			}
 			printf("\n");
 		}
@@ -330,7 +387,7 @@ int main(int argc, char *argv[]){
 			MPI_Send(&log_likelihoods_propose[0], log_likelihoods_propose.size(), MPI_DOUBLE, ROOT_PROCESS, TAG_LIKELIHOODS, MPI_COMM_WORLD);
 			//Receive update information from process 0
 			MPI_Recv(&accept[0], accept.size(), MPI_INT, ROOT_PROCESS, TAG_STRETCH_MOVE_ACCEPTANCE, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-			//MPI_Recv(&log_likelihoods[0], log_likelihoods.size(), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+			MPI_Recv(&log_likelihoods[0], log_likelihoods.size(), MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 		}
 		for(int i = 0; i < reaction_constants.size(); i += 1) {
 
@@ -1269,29 +1326,30 @@ ReactionConstants initialize_reaction_consts(SystemVariables *sys)
   return reaction_consts;  
 }
 
-bool check_oscillation(const Eigen::VectorXd autocorrelation, int min_crossings, double corr_threshold) {
+double check_oscillation(const Eigen::VectorXd autocorrelation, int min_crossings, double t_sample_incr, double expected_period) {
 
-	int n_crossings = 0;
-	bool up = false;
+	Eigen::VectorXd deriv = autocorrelation.tail(autocorrelation.size() - 1) - autocorrelation.head(autocorrelation.size() - 1);
+	Eigen::VectorXi rect = (deriv.array() <= 0).cast<int>();
+	Eigen::VectorXi peaks = ((rect.tail(rect.size() - 1) - rect.head(rect.size() - 1)).array() > 0).cast<int>();
+	std::vector<int> peak_indices;
 
-	for(int i = 0; i < autocorrelation.size(); i += 1) {
+	if(peaks.count() < min_crossings) {
 
-		if(!up && abs(autocorrelation[i]) >= corr_threshold) {
+		return -INFINITY;
+	}
 
-			if(!up) {
+	for(int i = 0; i < peaks.size(); i += 1) {
 
-				n_crossings += 1;
-			}
+		if(peaks[i] > 0) {
 
-			up = true;
-		}
-		else if(abs(autocorrelation[i]) < corr_threshold) {
-
-			up = false;
+			peak_indices.push_back(i);
 		}
 	}
-	
-	return n_crossings >= min_crossings;
+
+	Eigen::Map<Eigen::VectorXi> indices_map(peak_indices.data(), peak_indices.size());
+	double period = t_sample_incr * (indices_map.tail(indices_map.size() - 1) - indices_map.head(indices_map.size() - 1)).sum() / (indices_map.size() - 1);
+
+	return -pow(period - expected_period, 2);
 }
 
 Eigen::VectorXd cross_correlation(const Eigen::Ref<const Eigen::VectorXd>& x, const Eigen::Ref<const Eigen::VectorXd>& y) {

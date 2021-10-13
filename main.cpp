@@ -665,6 +665,7 @@ void initialize_system_vars(SystemVariables *sys)
   sys->ATPfrac                   = 1.0;
   sys->t_sample_incr             = 0.1;
   sys->tincu = 0;
+  sys->t_hex_equil = 0;
   sys->start_phosphorylated      = 0;
   sys->rnd_seed                  = 42;
   
@@ -728,7 +729,13 @@ void initialize_system_vars(SystemVariables *sys)
         sys->tincu = param_value;
         paramset = 1;
       }  
-      
+     
+      if( param_name.compare("t_hex_equil") ==0 )
+      {
+        sys->t_hex_equil = param_value;
+	paramset = 1;
+      }
+
       if( param_name.compare("ATPfrac") == 0 )
       {
         sys->ATPfrac = param_value;

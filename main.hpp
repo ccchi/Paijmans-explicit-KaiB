@@ -176,6 +176,7 @@ typedef struct system_variables
   double tsim;
   double tequ;
   double tincu;
+  double t_hex_equil;
   
   bool start_phosphorylated;
   

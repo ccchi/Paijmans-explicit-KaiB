@@ -24,6 +24,12 @@ bool propagate(SystemVariables *sys, Hexamer *hexamers, PropensityContainer *pro
 	double prop_B_f = reaction_consts->kBswitch_f * sys->B_inactive;
 	double prop_B_r = reaction_consts->kBswitch_r * sys->B_active;
 	double prop_KidA_bind = reaction_consts->kKidAon * sys->B_active * sys->KidA_free / sys->volume;
+
+	if(sys->tsim < sys->t_hex_equil) {
+
+		prop_KidA_bind = 0;
+	}
+	
 	double prop_KidA_unbind = reaction_consts->kKidAoff * sys->KaiBKidA;
 	double prop_total = prop_cont->get_qtot() + prop_B_f + prop_B_r + prop_KidA_bind + prop_KidA_unbind;
 	//Update tsim. 
