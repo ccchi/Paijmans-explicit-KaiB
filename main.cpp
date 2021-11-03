@@ -23,7 +23,7 @@
 #include <stdio.h>
 #include <random>
 
-#include "main.hpp"
+#include "data_structures.hpp"
 #include "Hexamer.hpp"
 #include "PropensityContainer.hpp"
 #include "propagate.hpp"
@@ -589,10 +589,10 @@ void write_outputfile(SystemVariables *sys)
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].pT );      //12
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].pD );      //13
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].pS );      //14
-    fprintf( Ifp, "%e\t", sys->Aoutput_data[j].CIATPcons ); //15
-    fprintf( Ifp, "%e\t", sys->Aoutput_data[j].dCIATPcons );//16                      
-    fprintf( Ifp, "%e\t", sys->Aoutput_data[j].CIIATPcons ); //17
-    fprintf( Ifp, "%e\t", sys->Aoutput_data[j].dCIIATPcons );//18                     
+    fprintf( Ifp, "%e\t", sys->Ioutput_data[j].CIATPcons ); //15
+    fprintf( Ifp, "%e\t", sys->Ioutput_data[j].dCIATPcons );//16                      
+    fprintf( Ifp, "%e\t", sys->Ioutput_data[j].CIIATPcons ); //17
+    fprintf( Ifp, "%e\t", sys->Ioutput_data[j].dCIIATPcons );//18                     
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].dGconfADP ); //19     
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].dGACIIbind ); //20
     fprintf( Ifp, "%e\t", sys->Ioutput_data[j].kADPoff ); //21

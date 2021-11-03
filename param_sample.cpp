@@ -1,7 +1,7 @@
 #include "Hexamer.hpp"
 #include "PropensityContainer.hpp"
 #include "propagate.hpp"
-#include "sampler.hpp"
+#include "param_sample.hpp"
 #include "main.hpp"
 
 const int NUM_REACTION_CONSTANTS = 10;
@@ -290,7 +290,7 @@ int main(int argc, char *argv[]){
 
 			while(propagate(&sys, &hexamers[0], &prop_cont, &reaction_constants_propose[i], u01, engine) && step_count < max_sim_iter) {
 
-				int step_count= 0;
+				int step_count += 1;
 
 				if(sys.tsim > t_sample) {
 
@@ -1324,62 +1324,4 @@ ReactionConstants initialize_reaction_consts(SystemVariables *sys)
 
   //fclose(Pfp);    
   return reaction_consts;  
-}
-
-double check_oscillation(const Eigen::VectorXd autocorrelation, int min_crossings, double t_sample_incr, double expected_period) {
-
-	Eigen::VectorXd deriv = autocorrelation.tail(autocorrelation.size() - 1) - autocorrelation.head(autocorrelation.size() - 1);
-	Eigen::VectorXi rect = (deriv.array() <= 0).cast<int>();
-	Eigen::VectorXi peaks = ((rect.tail(rect.size() - 1) - rect.head(rect.size() - 1)).array() > 0).cast<int>();
-	std::vector<int> peak_indices;
-
-	if(peaks.count() < min_crossings) {
-
-		return -INFINITY;
-	}
-
-	for(int i = 0; i < peaks.size(); i += 1) {
-
-		if(peaks[i] > 0) {
-
-			peak_indices.push_back(i);
-		}
-	}
-
-	Eigen::Map<Eigen::VectorXi> indices_map(peak_indices.data(), peak_indices.size());
-	double period = t_sample_incr * (indices_map.tail(indices_map.size() - 1) - indices_map.head(indices_map.size() - 1)).sum() / (indices_map.size() - 1);
-
-	return -pow(period - expected_period, 2);
-}
-
-Eigen::VectorXd cross_correlation(const Eigen::Ref<const Eigen::VectorXd>& x, const Eigen::Ref<const Eigen::VectorXd>& y) {
-
-
-	Eigen::VectorXd x_pad;
-	Eigen::VectorXd y_pad;
-
-	if(x.size() > y.size()) {
-
-		x_pad = Eigen::VectorXd::Zero(x.size() * 2);
-		x_pad.head(x.size()) = x;
-		y_pad = Eigen::VectorXd::Zero(x.size() * 2);
-		y_pad.head(y.size()) = y;
-	}
-	else {
-
-		x_pad = Eigen::VectorXd::Zero(y.size() * 2);
-		x_pad.head(x.size()) = x;
-		y_pad = Eigen::VectorXd::Zero(y.size() * 2);
-		y_pad.head(y.size()) = y;
-	}
-
-	Eigen::FFT<double> fft;
-	Eigen::VectorXcd F_x(x_pad.size());
-	Eigen::VectorXcd F_y(y_pad.size());
-	fft.fwd(F_x, x_pad);
-	fft.fwd(F_y, y_pad);
-	Eigen::VectorXcd F_corr = F_x.conjugate().array() * F_y.array();
-	Eigen::VectorXcd corr(F_corr.size());
-	fft.inv(corr, F_corr);
-	return corr.real().head(corr.size() / 2) / corr.real()[0];
 }

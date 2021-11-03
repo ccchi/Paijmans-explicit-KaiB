@@ -1,3 +1,6 @@
+#ifndef PARAM_SAMPLE
+#define PARAM_SAMPLE
+
 #include <sstream>
 #include <fstream>
 #include <iostream>
@@ -37,5 +40,5 @@ std::string delUnnecessary(std::string &str);
 ReactionConstants initialize_reaction_consts(SystemVariables *sys);
 void initialize_system_vars(SystemVariables *sys);
 std::vector<std::vector<double>> parse_sampler_coordinates(std::string &filename);
-Eigen::VectorXd cross_correlation(const Eigen::Ref<const Eigen::VectorXd>& x, const Eigen::Ref<const Eigen::VectorXd>& y);
-double check_oscillation(const Eigen::VectorXd autocorrelation, int min_crossings, double t_sample_incr, double expected_period);
+
+#endif
