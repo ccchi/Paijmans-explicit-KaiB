@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <random>
 
-#include "main.hpp"
 #include "Hexamer.hpp"
 #include "PropensityContainer.hpp"
 

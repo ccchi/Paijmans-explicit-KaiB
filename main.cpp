@@ -152,7 +152,7 @@ int main(int argc, char *argv[])
 	// ### For normal output ###
 	write_outputfile(&sys);  
 	
-	std::cout << step_count;
+	std::cout << step_count << "\n";
 	cerr << "System Ready" << endl;
 }
   
@@ -177,6 +177,8 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   int Ip(0), Ap(0);
   int ACIB_any(0);
   int ICIB_any(0);
+  int ACIKidA_bound = 0;
+  int ICIKidA_bound = 0;
 
   //State independent variables;
   int prev_CIATPcons(0), prev_CIIATPcons(0);
@@ -207,7 +209,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
       if( hexamers[i].get_CIKaiB_bound() == reaction_consts->nBseq && 
           hexamers[i].get_CIKaiA_bound() == 0 ) ACIB++;
       if( hexamers[i].get_CIKaiA_bound() > 0 ) ACIBA += 1;
-      if( hexamers[i].get_CIKaiB_bound() > 0) ACIB_any += 1; 
+      if( hexamers[i].get_CIKaiB_bound() > 0) ACIB_any += 1;
       AACII += hexamers[i].get_CIIKaiA_bound();
       ACIATP += hexamers[i].get_hex_CIATP();
       ACIATPstd += hexamers[i].get_hex_CIATP()*hexamers[i].get_hex_CIATP();     
@@ -223,6 +225,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
       AADPoff += hexamers[i].kCIADPoff();      
       ACIKaiA_bound += hexamers[i].get_CIKaiA_bound();
       ACIKaiB_bound += hexamers[i].get_CIKaiB_bound();
+      ACIKidA_bound += hexamers[i].get_CIKidA_bound();
       active++;
     }
     else
@@ -247,6 +250,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
       IdGACIIbind += hexamers[i].kCIIAon();
       ICIKaiA_bound += hexamers[i].get_CIKaiA_bound();
       ICIKaiB_bound += hexamers[i].get_CIKaiB_bound();
+      ICIKidA_bound += hexamers[i].get_CIKidA_bound();
 
     }
     Atot += hexamers[i].get_CIKaiA_bound() + hexamers[i].get_CIIKaiA_bound();      
@@ -297,7 +301,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ahex_avr_data.dGACIIbind = (double) AdGACIIbind/N_hexamers;
   Ahex_avr_data.CIKaiA_bound = (double) ACIKaiA_bound / N_hexamers;
   Ahex_avr_data.CIKaiB_bound = (double) ACIKaiB_bound / N_hexamers;
+  Ahex_avr_data.CIKidA_bound = (double) ACIKidA_bound / N_hexamers;
   Ahex_avr_data.BCI_any = (double) ACIB_any / N_hexamers;
+  Ahex_avr_data.B_active = sys->B_active;
+  Ahex_avr_data.KaiBKidA = sys->KaiBKidA;
 
   Ihex_avr_data.p        = (double) Ip/(6*N_hexamers);
   Ihex_avr_data.ACI      = (double) ICIBA/(KaiA0 * sys->volume);
@@ -317,7 +324,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ihex_avr_data.dGACIIbind = (double) IdGACIIbind/N_hexamers;
   Ihex_avr_data.CIKaiA_bound = (double) ICIKaiA_bound / N_hexamers;
   Ihex_avr_data.CIKaiB_bound = (double) ICIKaiB_bound / N_hexamers;
+  Ihex_avr_data.CIKidA_bound = (double) ICIKidA_bound / N_hexamers;
   Ihex_avr_data.BCI_any = (double) ICIB_any / N_hexamers;
+  Ihex_avr_data.B_active = sys->B_active;
+  Ihex_avr_data.KaiBKidA = sys->KaiBKidA;
 
 
    
@@ -640,7 +650,9 @@ void write_outputfile(SystemVariables *sys)
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].CIKaiA_bound + sys->Ioutput_data[j].CIKaiA_bound); //24
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].CIKaiB_bound + sys->Ioutput_data[j].CIKaiB_bound); //25
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].BCI_any + sys->Ioutput_data[j].BCI_any);
-    fprintf( Tfp, "%e\n", (double) (sys->B_active + sys->KaiBKidA));
+    fprintf( Tfp, "%d\t", sys->Aoutput_data[j].B_active);
+    fprintf( Tfp, "%d\t", sys->Aoutput_data[j].KaiBKidA);
+    fprintf( Tfp, "%e\n", sys->Aoutput_data[j].CIKidA_bound + sys->Ioutput_data[j].CIKidA_bound);
   }  
   
   // close file

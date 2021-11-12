@@ -14,7 +14,7 @@
 #include <random>
 #include <math.h>
 
-#include "main.hpp"
+#include "data_structures.hpp"
 #include "PropensityContainer.hpp"
 //#include "Monomer.hpp"
 #include "Hexamer.hpp"
@@ -116,7 +116,13 @@ public: // Public function definitions.
     int get_CIKaiB_bound()
     {
       return this->CIKaiB_bound;
-    }    
+    }   
+
+    int get_CIKidA_bound()
+    {
+
+      return this->CIKidA_bound;
+    }
        
     bool get_active()
     {

@@ -10,7 +10,7 @@
 #include <math.h>
 #include <random>
 
-#include "main.hpp"
+#include "data_structures.hpp"
 #include "Hexamer.hpp"
 #include "PropensityContainer.hpp"
 #include "propagate.hpp"

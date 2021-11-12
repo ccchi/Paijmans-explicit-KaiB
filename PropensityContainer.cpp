@@ -5,7 +5,6 @@
 #include <vector>
 #include <math.h>
 
-#include "main.hpp"
 #include "PropensityContainer.hpp"
 #include "Hexamer.hpp"
 

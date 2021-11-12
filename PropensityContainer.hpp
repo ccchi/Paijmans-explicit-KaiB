@@ -17,7 +17,7 @@
 #include <vector>
 #include <math.h>
 
-#include "main.hpp"
+#include "data_structures.hpp"
 
 class PropensityContainer
 {
