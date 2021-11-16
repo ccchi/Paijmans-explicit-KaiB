@@ -300,7 +300,7 @@ double Hexamer::update_KaiB_prop()
 
 double Hexamer::update_KidA_prop()
 {
-	prop_list[8] = max((double) CIKaiB_bound - CIKidA_bound - CIKaiA_bound, 0.) * sys->KidA_free * reaction_consts->kKidAon;
+	prop_list[8] = max((double) CIKaiB_bound - CIKidA_bound, 0.) * sys->KidA_free * reaction_consts->kKidAon;
 	return prop_list[8];
 }
 
@@ -337,11 +337,11 @@ void Hexamer::set_propensities()
 	prop_list[7] = CIKidA_bound * kCIBFSoff();
 
 	//CI: CI*B + KidA <-> CI*B*KidA
-	prop_list[8] = max((double) CIKaiB_bound - CIKidA_bound - CIKaiA_bound, 0.) * sys->KidA_free * reaction_consts->kKidAon;
+	prop_list[8] = max((double) CIKaiB_bound - CIKidA_bound, 0.) * sys->KidA_free * reaction_consts->kKidAon;
 	prop_list[9] = CIKidA_bound * reaction_consts->kKidAoff;
 
 	// CI: CI + A <-> CI*A
-	prefactor_r4 = ( CIKaiB_bound == reaction_consts->nBseq ) ? max(reaction_consts->nAseq - CIKaiA_bound - CIKidA_bound, 0.) * kCIAon() : 0.0;
+	prefactor_r4 = ( CIKaiB_bound == reaction_consts->nBseq ) ? max(reaction_consts->nAseq - CIKaiA_bound, 0.) * kCIAon() : 0.0;
 	prop_list[10] = prefactor_r4 * sys->cAfree;
 	prop_list[11] = CIKaiA_bound * kCIAoff();
 

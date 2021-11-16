@@ -112,6 +112,7 @@ int main(int argc, char *argv[])
 
 	//Propagate simulation until tend is reached.
 	int step_count = 0;
+	bool KidA_changed = false;
 	while( propagate(&sys, hexamers, &prop_cont, &reaction_consts, u01, engine) ) 
 	{ 
 		step_count += 1;
