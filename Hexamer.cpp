@@ -147,17 +147,20 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 			CIKaiB_bound++;
 			sys->B_active -= 1;
 			ext_change = 2;
+			sys->n_CIKaiB_on += 1;
 			break;
 		case 3:
 			CIKaiB_bound++;
 			CIKidA_bound += 1;
 			sys->KaiBKidA -= 1;
 			ext_change = 2;
+			sys->n_CIKaiB_on += 1;
 			break;
 		case 4:
 			CIKaiB_bound++;
 			sys->B_inactive -= 1;
 			ext_change = 2;
+			sys->n_CIKaiB_on += 1;
 			break;
 		case 5: 
 			CIKaiB_bound--;

@@ -164,6 +164,16 @@ public: // Public function definitions.
       this->sys = psys;
     }
 
+    double get_prop(int i) {
+
+	    if(i < 0 || i >= HEXAMER_N_REACTS) {
+
+		return 0;
+	    }
+
+	    return prop_list[i];
+    }
+
 public: // Public member variables.
 
 

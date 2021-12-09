@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 		hexamers[i].set_prop_container(&prop_cont);
 		hexamers[i].set_reaction_consts(&reaction_consts); 
 		hexamers[i].set_sysvars(&sys);
-		hexamers[i].initialize_state(i,1,0,0,0,6,6,0,0,6); 
+		hexamers[i].initialize_state(i,1,0,0,6,6,6,0,0,0); 
 		//hexamers[i].set_sextet(monomers, u01, engine); 
 		hexamers[i].set_propensities();
 	}
@@ -86,6 +86,8 @@ int main(int argc, char *argv[])
 	double t_sample(sys.tequ);
 	cerr << "System initialized with " << sys.Afree << " KaiA dimers and " << sys.N_hexamers 
 	<< " KaiC hexamers. " << endl;
+	std::cerr << "fsKaiB: " << sys.B_active << " gsKaiB:" << sys.B_inactive << endl;
+	std::cerr << "KidA: " << sys.KidA_free << endl;
 	cerr << "Equilibration time: " << sys.tequ << ", Max simulation time: " << sys.tend << endl;   
 
 	/*int j = 0;
@@ -110,11 +112,20 @@ int main(int argc, char *argv[])
 
 	infile.close();*/
 
+	/*engine.seed(0);
+	int KidA_high = sys.KidA_free;
+	sys.KidA_free = 0;
+	bool KidA_changed = false;*/
+
 	//Propagate simulation until tend is reached.
 	int step_count = 0;
-	bool KidA_changed = false;
 	while( propagate(&sys, hexamers, &prop_cont, &reaction_consts, u01, engine) ) 
 	{ 
+		/*if(!KidA_changed && sys.tsim > 44) {
+
+			KidA_changed = true;
+			sys.KidA_free = KidA_high;
+		}*/
 		step_count += 1;
 		// Record samples for output data 
 		if(sys.tsim > t_sample)
@@ -184,7 +195,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   //State independent variables;
   int prev_CIATPcons(0), prev_CIIATPcons(0);
   int active(0), inactive(0);
-  int Atot = 0;    
+  int Atot = 0;
   
   //Energies
   double AdGconfADP(0.), IdGconfADP(0.), 
@@ -192,6 +203,12 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
          AADPoff(0.), IADPoff(0.), 
 	 ACIKaiA_bound(0), ICIKaiA_bound(0),
 	 ACIKaiB_bound(0), ICIKaiB_bound(0);
+  double A_prop_CIBon = 0;
+  double I_prop_CIBon = 0;
+  double A_prop_CIAon = 0;
+  double I_prop_CIAon = 0;
+  double A_n_max_CIKaiB_bound = 0;
+  double I_n_max_CIKaiB_bound = 0;
   
   double N_hexamers(sys->N_hexamers);
   //double N_hexamers(1);  
@@ -227,6 +244,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
       ACIKaiA_bound += hexamers[i].get_CIKaiA_bound();
       ACIKaiB_bound += hexamers[i].get_CIKaiB_bound();
       ACIKidA_bound += hexamers[i].get_CIKidA_bound();
+      A_prop_CIBon += hexamers[i].get_prop(2);
+      A_prop_CIBon += hexamers[i].get_prop(3);
+      A_prop_CIAon += hexamers[i].get_prop(10);
+      if( hexamers[i].get_CIKaiB_bound() == reaction_consts->nBseq) A_n_max_CIKaiB_bound += 1;
       active++;
     }
     else
@@ -252,7 +273,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
       ICIKaiA_bound += hexamers[i].get_CIKaiA_bound();
       ICIKaiB_bound += hexamers[i].get_CIKaiB_bound();
       ICIKidA_bound += hexamers[i].get_CIKidA_bound();
-
+      I_prop_CIBon += hexamers[i].get_prop(2);
+      I_prop_CIBon += hexamers[i].get_prop(3);
+      I_prop_CIAon += hexamers[i].get_prop(10);
+      if( hexamers[i].get_CIKaiB_bound() == reaction_consts->nBseq) I_n_max_CIKaiB_bound += 1;
     }
     Atot += hexamers[i].get_CIKaiA_bound() + hexamers[i].get_CIIKaiA_bound();      
   }
@@ -306,6 +330,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ahex_avr_data.BCI_any = (double) ACIB_any / N_hexamers;
   Ahex_avr_data.B_active = sys->B_active;
   Ahex_avr_data.KaiBKidA = sys->KaiBKidA;
+  Ahex_avr_data.n_CIKaiB_on = sys->n_CIKaiB_on;
+  Ahex_avr_data.prop_CIBon = A_prop_CIBon;
+  Ahex_avr_data.prop_CIAon = A_prop_CIAon;
+  Ahex_avr_data.n_max_CIKaiB_bound = A_n_max_CIKaiB_bound;
 
   Ihex_avr_data.p        = (double) Ip/(6*N_hexamers);
   Ihex_avr_data.ACI      = (double) ICIBA/(KaiA0 * sys->volume);
@@ -329,6 +357,10 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ihex_avr_data.BCI_any = (double) ICIB_any / N_hexamers;
   Ihex_avr_data.B_active = sys->B_active;
   Ihex_avr_data.KaiBKidA = sys->KaiBKidA;
+  Ihex_avr_data.n_CIKaiB_on = sys->n_CIKaiB_on;
+  Ihex_avr_data.prop_CIBon = I_prop_CIBon;
+  Ihex_avr_data.prop_CIAon = I_prop_CIAon;
+  Ihex_avr_data.n_max_CIKaiB_bound = I_n_max_CIKaiB_bound;
 
 
    
@@ -653,7 +685,11 @@ void write_outputfile(SystemVariables *sys)
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].BCI_any + sys->Ioutput_data[j].BCI_any);
     fprintf( Tfp, "%d\t", sys->Aoutput_data[j].B_active);
     fprintf( Tfp, "%d\t", sys->Aoutput_data[j].KaiBKidA);
-    fprintf( Tfp, "%e\n", sys->Aoutput_data[j].CIKidA_bound + sys->Ioutput_data[j].CIKidA_bound);
+    fprintf( Tfp, "%e\t", sys->Aoutput_data[j].CIKidA_bound + sys->Ioutput_data[j].CIKidA_bound);
+    fprintf( Tfp, "%d\t", sys->Aoutput_data[j].n_CIKaiB_on);
+    fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIBon + sys->Ioutput_data[j].prop_CIBon);
+    fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIAon + sys->Ioutput_data[j].prop_CIAon);
+    fprintf( Tfp, "%e\n", sys->Aoutput_data[j].n_max_CIKaiB_bound + sys->Ioutput_data[j].n_max_CIKaiB_bound);
   }  
   
   // close file
@@ -718,7 +754,13 @@ void initialize_system_vars(SystemVariables *sys)
       {
  	sys->KaiB0 = param_value;
 	paramset = 1;
-      } 
+      }
+
+      if( param_name.compare("fraction_fs") == 0)
+      {
+	sys->fraction_fs = param_value;
+	paramset = 1;
+      }
       
       if( param_name.compare("KidA0") == 0 )
       {
@@ -824,11 +866,12 @@ void initialize_system_vars(SystemVariables *sys)
   }//while 
 
   //Set system variables
+  int B_total = sys->KaiB0 * sys->volume;
   sys->tsim = 0.0;
   sys->N_hexamers = sys->KaiC0 * sys->volume;
   sys->Afree = sys->KaiA0 * sys->volume;
-  sys->B_inactive = sys->KaiB0 * sys->volume;
-  sys->B_active = 0;
+  sys->B_active = B_total * sys->fraction_fs;
+  sys->B_inactive = B_total - sys->B_active;
   sys->KaiBKidA = 0;
   sys->KidA_free = sys->KidA0 * sys->volume;
   sys->cAfree = sys->Afree / sys->volume;
