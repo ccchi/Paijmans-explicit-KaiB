@@ -20,7 +20,7 @@ using namespace std;
 bool propagate(SystemVariables *sys, Hexamer *hexamers, PropensityContainer *prop_cont, ReactionConstants *reaction_consts, uniform_real_distribution<double> &u01, mt19937_64 &engine)
 {
 	//Draw two random numbers.
-	double rnd1( u01(engine) ), rnd2( u01(engine)), rnd3( u01(engine)) rnd4( u01(engine));
+	double rnd1( u01(engine) ), rnd2( u01(engine)), rnd3( u01(engine)), rnd4( u01(engine));
 	double prop_B_f = reaction_consts->kBswitch_f * sys->B_inactive;
 	double prop_B_r = reaction_consts->kBswitch_r * (sys->B_active + sys->B1_active);
 	double prop_KidA_bind = reaction_consts->kKidAon * (sys->B_active + sys->B1_active) * sys->KidA_free / sys->volume;

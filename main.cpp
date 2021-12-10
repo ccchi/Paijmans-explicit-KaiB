@@ -328,8 +328,8 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ahex_avr_data.CIKaiB_bound = (double) ACIKaiB_bound / N_hexamers;
   Ahex_avr_data.CIKidA_bound = (double) ACIKidA_bound / N_hexamers;
   Ahex_avr_data.BCI_any = (double) ACIB_any / N_hexamers;
-  Ahex_avr_data.B_active = sys->B_active;
-  Ahex_avr_data.KaiBKidA = sys->KaiBKidA;
+  Ahex_avr_data.B_active = sys->B_active + sys->B1_active;
+  Ahex_avr_data.KaiBKidA = sys->KaiBKidA + sys->KaiB1KidA;
   Ahex_avr_data.n_CIKaiB_on = sys->n_CIKaiB_on;
   Ahex_avr_data.prop_CIBon = A_prop_CIBon;
   Ahex_avr_data.prop_CIAon = A_prop_CIAon;
@@ -355,8 +355,8 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ihex_avr_data.CIKaiB_bound = (double) ICIKaiB_bound / N_hexamers;
   Ihex_avr_data.CIKidA_bound = (double) ICIKidA_bound / N_hexamers;
   Ihex_avr_data.BCI_any = (double) ICIB_any / N_hexamers;
-  Ihex_avr_data.B_active = sys->B_active;
-  Ihex_avr_data.KaiBKidA = sys->KaiBKidA;
+  Ihex_avr_data.B_active = sys->B_active + sys->B1_active;
+  Ihex_avr_data.KaiBKidA = sys->KaiBKidA + sys->KaiB1KidA;
   Ihex_avr_data.n_CIKaiB_on = sys->n_CIKaiB_on;
   Ihex_avr_data.prop_CIBon = I_prop_CIBon;
   Ihex_avr_data.prop_CIAon = I_prop_CIAon;
