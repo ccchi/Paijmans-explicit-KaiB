@@ -125,6 +125,7 @@ int Hexamer::choose_reaction(double rnd)
 int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<double> &u01, mt19937_64 &engine)
 {
 	int ext_change(0);
+	double r = u01(engine);
 	/*if(reaction_channel < 8)
 	{
 	printf("%d\n", reaction_channel);
@@ -145,16 +146,38 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 			break;
 		case 2: 
 			CIKaiB_bound++;
-			sys->B_active -= 1;
 			ext_change = 2;
 			sys->n_CIKaiB_on += 1;
+
+			bool choice_tagged = r * (sys->B_active + sys->B1_active) < sys->B1_active;
+
+			if(choice_tagged) {
+
+				sys->B1_active -= 1;
+			}
+			else {
+
+				sys->B_active -= 1;
+			}
+
 			break;
 		case 3:
 			CIKaiB_bound++;
 			CIKidA_bound += 1;
-			sys->KaiBKidA -= 1;
 			ext_change = 2;
 			sys->n_CIKaiB_on += 1;
+			
+			bool choice_tagged = r * (sys->B_active + sys->B1_active) < sys->B1_active;
+
+			if(choice_tagged) {
+
+				sys->KaiB1KidA -= 1;
+			}
+			else {
+
+				sys->KaiBKidA -= 1;
+			}
+
 			break;
 		case 4:
 			CIKaiB_bound++;
@@ -164,7 +187,7 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 			break;
 		case 5: 
 			CIKaiB_bound--;
-			sys->B_active += 1;
+			sys->B1_active += 1;
 			ext_change = 2;
 			break;
 		case 6:
@@ -175,7 +198,7 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 		case 7:
 			CIKaiB_bound -= 1;
 			CIKidA_bound -= 1;
-			sys->KaiBKidA += 1;
+			sys->KaiB1KidA += 1;
 			ext_change = 2;
 			break;
 		case 8:
@@ -294,8 +317,8 @@ double Hexamer::update_KaiA_prop()
 double Hexamer::update_KaiB_prop()
 {
   // CI: CI + KaiB_active -> CI.KaiB
-	prop_list[2] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * sys->B_active / sys->volume: 0.0;
-	prop_list[3] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * sys->KaiBKidA / sys->volume: 0.0;
+	prop_list[2] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * (sys->B_active + sys->B1_active) / sys->volume: 0.0;
+	prop_list[3] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * (sys->KaiBKidA + sys->KaiB1KidA0) / sys->volume: 0.0;
 	prop_list[4] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBGon() * sys->B_inactive / sys->volume: 0.0;
 
 	return prop_list[2] + prop_list[3] + prop_list[4];
@@ -332,9 +355,7 @@ void Hexamer::set_propensities()
 	prop_list[1] = CIIKaiA_bound * kCIIAoff();
 
 	// CI: CI + B <-> CI*B ([KaiB] dependent)
-	prop_list[2] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * sys->B_active / sys->volume: 0.0;
-	prop_list[3] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * sys->KaiBKidA / sys->volume: 0.0;
-	prop_list[4] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBGon() * sys->B_inactive / sys->volume: 0.0;
+	update_KaiB_prop();
 	prop_list[5] = (CIKaiB_bound - CIKidA_bound) * kCIBFSoff();
 	prop_list[6] = (CIKaiB_bound - CIKidA_bound) * kCIBGoff();
 	prop_list[7] = CIKidA_bound * kCIBFSoff();

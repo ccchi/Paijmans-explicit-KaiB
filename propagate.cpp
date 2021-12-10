@@ -20,17 +20,17 @@ using namespace std;
 bool propagate(SystemVariables *sys, Hexamer *hexamers, PropensityContainer *prop_cont, ReactionConstants *reaction_consts, uniform_real_distribution<double> &u01, mt19937_64 &engine)
 {
 	//Draw two random numbers.
-	double rnd1( u01(engine) ), rnd2( u01(engine)), rnd3( u01(engine));
+	double rnd1( u01(engine) ), rnd2( u01(engine)), rnd3( u01(engine)) rnd4( u01(engine));
 	double prop_B_f = reaction_consts->kBswitch_f * sys->B_inactive;
-	double prop_B_r = reaction_consts->kBswitch_r * sys->B_active;
-	double prop_KidA_bind = reaction_consts->kKidAon * sys->B_active * sys->KidA_free / sys->volume;
+	double prop_B_r = reaction_consts->kBswitch_r * (sys->B_active + sys->B1_active);
+	double prop_KidA_bind = reaction_consts->kKidAon * (sys->B_active + sys->B1_active) * sys->KidA_free / sys->volume;
 
 	if(sys->tsim < sys->t_hex_equil) {
 
 		prop_KidA_bind = 0;
 	}
 	
-	double prop_KidA_unbind = reaction_consts->kKidAoff * sys->KaiBKidA;
+	double prop_KidA_unbind = reaction_consts->kKidAoff * (sys->KaiBKidA + sys->KaiB1KidA);
 	double prop_total = prop_cont->get_qtot() + prop_B_f + prop_B_r + prop_KidA_bind + prop_KidA_unbind;
 	//Update tsim. 
 	sys->tsim -= log(rnd1) / prop_total;
@@ -66,19 +66,51 @@ bool propagate(SystemVariables *sys, Hexamer *hexamers, PropensityContainer *pro
 		else if(choice < prop_cont->get_qtot() + prop_B_f + prop_B_r) {
 			
 			sys->B_inactive += 1;
-			sys->B_active -= 1;
+
+			bool choice_tagged = rnd4 * (sys->B_active + sys->B1_active) < sys->B1_active;
+			
+			if(choice_tagged) {
+
+				sys->B1_active -= 1;
+			}
+			else {
+
+				sys->B_active -= 1;
+			}
 		}
 		else if(choice < prop_cont->get_qtot() + prop_B_f + prop_B_r + prop_KidA_bind) {
 
-			sys->B_active -= 1;
 			sys->KidA_free -= 1;
-			sys->KaiBKidA += 1;
+
+			bool choice_tagged = rnd4 * (sys->B_active + sys->B1_active) < sys->B1_active;
+
+			if(choice_tagged) {
+
+				sys->B1_active -= 1;
+				sys->KaiB1KidA += 1;
+			}
+			else {
+
+				sys->B_active -= 1;
+				sys->KaiBKidA += 1;
+			}
 		}
 		else {
 
-			sys->B_active += 1;
-			sys->KaiBKidA -= 1;
 			sys->KidA_free += 1;
+
+			bool choice_tagged = rnd4 * (sys->KaiBKidA + sys->KaiB1KidA) < sys->KaiB1KidA;
+
+			if(choice_tagged) {
+
+				sys->B1_active += 1;
+				sys->KaiB1KidA -= 1;
+			}
+			else {
+
+				sys->B_active += 1;
+				sys->KaiBKidA -= 1;
+			}
 		}
 		prop_cont->set_qB_all(hexamers);
 	}

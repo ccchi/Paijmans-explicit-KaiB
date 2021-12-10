@@ -872,7 +872,9 @@ void initialize_system_vars(SystemVariables *sys)
   sys->Afree = sys->KaiA0 * sys->volume;
   sys->B_active = B_total * sys->fraction_fs;
   sys->B_inactive = B_total - sys->B_active;
+  sys->B1_active = 0;
   sys->KaiBKidA = 0;
+  sys->KaiB1KidA = 0;
   sys->KidA_free = sys->KidA0 * sys->volume;
   sys->cAfree = sys->Afree / sys->volume;
   sys->CIATPcons = 0; sys->CIIATPcons = 0;
