@@ -30,6 +30,27 @@ void PropensityContainer::update_qAll_el(double qint_el, double qA_el, double qB
   qB_list[index] = qB_el;
   qKidA_list[index] = qKidA_el;
   qtot_list[index] = qint_list[index] + qA_list[index] + qB_list[index] + qKidA_list[index];
+
+  if(qint <= 0) {
+  
+    sum_qint();
+    sum_qtot();
+  }
+  if(qA <= 0) {
+
+    sum_qA();
+    sum_qtot();
+  }
+  if(qB <= 0) {
+
+    sum_qB();
+    sum_qtot();
+  }
+  if(qKidA < 0) {
+
+    sum_qKidA();
+    sum_qtot();
+  }
 }
 
 
@@ -60,6 +81,12 @@ void PropensityContainer::update_qint_el(double qint_el, int index)
     
   qint_list[index] = qint_el;
   qtot_list[index] = qint_list[index] + qA_list[index] + qB_list[index] + qKidA_list[index];
+  
+  if(qint < 0) {
+
+    sum_qint();
+    sum_qtot();
+  }
 }
 
 
