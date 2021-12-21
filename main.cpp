@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 		hexamers[i].set_prop_container(&prop_cont);
 		hexamers[i].set_reaction_consts(&reaction_consts); 
 		hexamers[i].set_sysvars(&sys);
-		hexamers[i].initialize_state(i,1,0,0,6,6,6,0,0,0); 
+		hexamers[i].initialize_state(i,1,0,0,0,6,6,0,0,0); 
 		//hexamers[i].set_sextet(monomers, u01, engine); 
 		hexamers[i].set_propensities();
 	}
@@ -334,6 +334,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ahex_avr_data.prop_CIBon = A_prop_CIBon;
   Ahex_avr_data.prop_CIAon = A_prop_CIAon;
   Ahex_avr_data.n_max_CIKaiB_bound = A_n_max_CIKaiB_bound;
+  Ahex_avr_data.n_B_rebind = sys->n_B_rebind;
 
   Ihex_avr_data.p        = (double) Ip/(6*N_hexamers);
   Ihex_avr_data.ACI      = (double) ICIBA/(KaiA0 * sys->volume);
@@ -361,6 +362,7 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   Ihex_avr_data.prop_CIBon = I_prop_CIBon;
   Ihex_avr_data.prop_CIAon = I_prop_CIAon;
   Ihex_avr_data.n_max_CIKaiB_bound = I_n_max_CIKaiB_bound;
+  Ihex_avr_data.n_B_rebind = sys->n_B_rebind;
 
 
    
@@ -689,6 +691,7 @@ void write_outputfile(SystemVariables *sys)
     fprintf( Tfp, "%d\t", sys->Aoutput_data[j].n_CIKaiB_on);
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIBon + sys->Ioutput_data[j].prop_CIBon);
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIAon + sys->Ioutput_data[j].prop_CIAon);
+    fprintf( Tfp, "%d\t", sys->Ioutput_data[j].n_B_rebind);
     fprintf( Tfp, "%e\n", sys->Aoutput_data[j].n_max_CIKaiB_bound + sys->Ioutput_data[j].n_max_CIKaiB_bound);
   }  
   

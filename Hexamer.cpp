@@ -155,6 +155,7 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 			if(choice_tagged) {
 
 				sys->B1_active -= 1;
+				sys->n_B_rebind += 1;
 			}
 			else {
 
@@ -168,11 +169,12 @@ int Hexamer::fire_reaction(int reaction_channel, uniform_real_distribution<doubl
 			ext_change = 2;
 			sys->n_CIKaiB_on += 1;
 			
-			choice_tagged = r * (sys->B_active + sys->B1_active) < sys->B1_active;
+			choice_tagged = r * (sys->KaiBKidA + sys->KaiB1KidA) < sys->KaiB1KidA;
 
 			if(choice_tagged) {
 
 				sys->KaiB1KidA -= 1;
+				sys->n_B_rebind += 1;
 			}
 			else {
 
@@ -362,7 +364,7 @@ void Hexamer::set_propensities()
 	prop_list[7] = CIKidA_bound * kCIBFSoff();
 
 	//CI: CI*B + KidA <-> CI*B*KidA
-	prop_list[8] = max((double) CIKaiB_bound - CIKidA_bound, 0.) * sys->KidA_free * reaction_consts->kKidAon / sys->volume;
+	update_KidA_prop();
 	prop_list[9] = CIKidA_bound * reaction_consts->kKidAoff;
 
 	// CI: CI + A <-> CI*A
