@@ -23,10 +23,13 @@ class Hexamer
 {
 private: // Constant definitions
     
-public: //Constructors
-    Hexamer()
-    : index(0), active(1), CIIKaiA_bound(0), CIKaiA_bound(0), 
-      CIKaiB_bound(0) {}
+public: //Constructor
+
+	constexpr static int HEXAMER_N_REACTS = 26;
+	
+	Hexamer()
+	: index(0), active(1), CIIKaiA_bound(0), CIKaiA_bound(0), 
+	CIKaiB_bound(0) {}
     
 public: // Public function definitions.
   
