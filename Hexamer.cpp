@@ -320,9 +320,9 @@ double Hexamer::update_KaiA_prop()
 double Hexamer::update_KaiB_prop()
 {
   // CI: CI + KaiB_active -> CI.KaiB
-	prop_list[2] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * (sys->B_active + sys->B1_active) / sys->volume: 0.0;
-	prop_list[3] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBFSon() * (sys->KaiBKidA + sys->KaiB1KidA) / sys->volume: 0.0;
-	prop_list[4] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? kCIBGon() * sys->B_inactive / sys->volume: 0.0;
+	prop_list[2] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? max(reaction_consts->nBseq - CIKaiB_bound, 0.) * kCIBFSon() * (sys->B_active + sys->B1_active) / sys->volume: 0.0;
+	prop_list[3] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? max(reaction_consts->nBseq - CIKaiB_bound, 0.) * kCIBFSon() * (sys->KaiBKidA + sys->KaiB1KidA) / sys->volume: 0.0;
+	prop_list[4] = ( CIKaiB_bound < reaction_consts->nBseq && sys->tsim > sys->tincu + sys->t_hex_equil) ? max(reaction_consts->nBseq - CIKaiB_bound, 0.) * kCIBGon() * sys->B_inactive / sys->volume: 0.0;
 
 	return prop_list[2] + prop_list[3] + prop_list[4];
 }
