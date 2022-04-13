@@ -207,8 +207,8 @@ HexamerAvr calc_hex_averages( Hexamer *hexamers, SystemVariables *sys, ReactionC
   double I_prop_CIBon = 0;
   double A_prop_CIAon = 0;
   double I_prop_CIAon = 0;
-  double A_n_max_CIKaiB_bound = 0;
-  double I_n_max_CIKaiB_bound = 0;
+  int A_n_max_CIKaiB_bound = 0;
+  int I_n_max_CIKaiB_bound = 0;
   
   double N_hexamers(sys->N_hexamers);
   //double N_hexamers(1);  
@@ -692,7 +692,7 @@ void write_outputfile(SystemVariables *sys)
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIBon + sys->Ioutput_data[j].prop_CIBon);
     fprintf( Tfp, "%e\t", sys->Aoutput_data[j].prop_CIAon + sys->Ioutput_data[j].prop_CIAon);
     fprintf( Tfp, "%d\t", sys->Ioutput_data[j].n_B_rebind);
-    fprintf( Tfp, "%e\n", sys->Aoutput_data[j].n_max_CIKaiB_bound + sys->Ioutput_data[j].n_max_CIKaiB_bound);
+    fprintf( Tfp, "%d\n", sys->Aoutput_data[j].n_max_CIKaiB_bound + sys->Ioutput_data[j].n_max_CIKaiB_bound);
   }  
   
   // close file
