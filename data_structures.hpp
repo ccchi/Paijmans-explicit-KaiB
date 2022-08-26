@@ -197,12 +197,12 @@ typedef struct system_variables
   
   //Dynamic vars
   int Afree; //Free KaiA dimers;
-  int B_active;
-  int B_inactive;
-  int B1_active;
+  int B_active; //fsKaiB
+  int B_inactive; //gsKaiB
+  int B1_active; //fsKaiB tagged to track rebinding
   int KidA_free;
-  int KaiBKidA;
-  int KaiB1KidA;
+  int KaiBKidA; //KaiB-KidA complexes
+  int KaiB1KidA; //complexes tagged to track rebinding
   double cAfree; //Free KaiA concentration 
   int CIATPcons; //Number of consumed ATP molecules in CI domain.
   int CIIATPcons; //Number of consumed ATP molecules in CII domain.
